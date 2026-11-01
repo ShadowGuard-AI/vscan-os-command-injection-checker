@@ -16,3 +16,6 @@ Detects potential OS Command Injection vulnerabilities by injecting a set of pre
 
 ## License
 Copyright (c) ShadowGuardAI
+
+## Behaviour notes
+A safe verdict is printed only when at least one payload received a response; when no payload receives a response the scan reports failure and exits non-zero. Responses are compared against a baseline response fetched with a benign value, and only output shaped indicators (such as uid= and gid=) count as evidence. On a hit the tool prints a short excerpt around the match with credential shaped values redacted, never the full response body. Header values may contain colons and POST values may contain equals signs; both are split on the first separator only.
