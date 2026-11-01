@@ -93,6 +93,10 @@ def send_request(url, method="GET", data=None, headers=None, payload=None, param
                 key, value = header_pair.split(':', 1)
                 header_dict[key.strip()] = value.strip()
 
+            # The parameter is appended even when the URL already
+            # carries it. Many servers read the first occurrence of a
+            # repeated parameter, which is the original value, so the
+            # payload can go untested while the scan reports coverage.
         if method == "GET":
             sep = "&" if "?" in url else "?"
             full_url = url + sep + urllib.parse.quote_plus(param) + "=" + urllib.parse.quote_plus(payload)
@@ -151,11 +155,19 @@ def main():
 
     # Baseline response with a benign value, used so an indicator that
     # the page always contains is not reported as a hit.
+    # If the baseline request itself fails, baseline_text is None and
+    # every comparison below runs against an empty string. A page that
+    # always carries one of the indicators then produces a hit on the
+    # first payload instead of being recognised as page furniture.
     baseline = send_request(url, method, data, headers, "baselineprobe", param, timeout)
     baseline_text = baseline.text if baseline is not None else None
     if baseline is not None:
         logging.info(f"Baseline response recorded (status {baseline.status_code}).")
 
+    # Detection is output only. There are no timing payloads in the
+    # list and no response time comparison, so a blind injection that
+    # executes and returns a page identical to the baseline is
+    # reported as safe by the final line.
     completed = 0
     error_statuses = 0
 
